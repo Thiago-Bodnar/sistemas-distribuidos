@@ -1,8 +1,10 @@
+from datetime import datetime
+from queue import PriorityQueue
 from threading import Thread
 from time import sleep
-from queue import PriorityQueue
+
 from Request import Request
-from datetime import datetime
+
 
 class Processo(Thread):
 
@@ -15,8 +17,8 @@ class Processo(Thread):
 
     possuiEleicaoEmAndamento = False
 
-    def _init_(self, id, threads):
-        super()._init_()
+    def __init__(self, id, threads):
+        super().__init__()
         self.id = id
         self.threads = threads
         try: 

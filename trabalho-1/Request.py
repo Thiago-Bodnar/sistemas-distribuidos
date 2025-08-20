@@ -1,11 +1,10 @@
 from functools import total_ordering
 
 @total_ordering
-
 class Request:
-    def _init_(self, id, time):
+    def __init__(self, id, time):
         self.id = id
         self.time = time
 
-    def _lt_(self, other):
+    def __lt__(self, other):
         return self.time < other.time
