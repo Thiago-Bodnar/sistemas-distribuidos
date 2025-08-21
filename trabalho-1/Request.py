@@ -1,10 +1,9 @@
-from functools import total_ordering
+from datetime import datetime
 
-@total_ordering
 class Request:
-    def __init__(self, id, time):
-        self.id = id
-        self.time = time
+    def __init__(self, process_id: int, timestamp: datetime):
+        self.process_id = process_id
+        self.timestamp = timestamp
 
-    def __lt__(self, other):
-        return self.time < other.time
+    def __repr__(self):
+        return f"<Request process_id={self.process_id} timestamp={self.timestamp.strftime('%H:%M:%S')}>"
