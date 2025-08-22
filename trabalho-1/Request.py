@@ -7,3 +7,6 @@ class Request:
 
     def __repr__(self):
         return f"<Request process_id={self.process_id} timestamp={self.timestamp.strftime('%H:%M:%S')}>"
+
+    def __lt__(self, other):
+        return self.timestamp < other.timestamp

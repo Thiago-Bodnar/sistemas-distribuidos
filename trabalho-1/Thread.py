@@ -1,47 +1,72 @@
 from datetime import datetime
 from queue import PriorityQueue
-from threading import Thread
+from threading import Thread, Lock
 from time import sleep
 from random import randint
 from Request import Request
 
 class Processo(Thread):
-
-    def __init__(self, id, threads):
-        super().__init__()
-        self.id = id
-        self.threads = threads
-        self.coordenador = None
+    def __init__(self, pid: int, threads_ref: list, threads_lock: Lock):
+        super().__init__(daemon=True)
+        self.id = pid
+        self.threads = threads_ref         
+        self.threads_lock = threads_lock    
         self.isCoordenador = False
-        self.filaCoordenador = PriorityQueue()
         self.isRunning = True
+
+        self._fila = PriorityQueue()
+        self._consumer_thread = None
 
     def run(self):
         while self.isRunning:
-            sleep(randint(10, 25))  # intervalo 10-25s
+            sleep(randint(10, 25)) 
             self.request_coordenador()
 
     def request_coordenador(self):
-        coord = next((t for t in self.threads if t.isCoordenador), None)
+        coord = self._get_coordenador()
         if coord is None:
             print(f"[{self.id}] Não há coordenador no momento.")
             return
-        print(f"[{self.id}] fez uma requisição para o coordenador {coord.id}")
-        coord.receive_request(Request(self.id, datetime.now()))
 
-    def receive_request(self, request):
-        if self.isCoordenador and self.isRunning and self.filaCoordenador:
-            self.filaCoordenador.put(request)
+        req = Request(self.id, datetime.now())
+        print(f"[{self.id}] requisitou RC ao coordenador {coord.id} às {req.timestamp.strftime('%H:%M:%S')}")
+        coord.receive_request(req)
 
-    def consumirFila(self):
+    def set_as_coordenador(self):
+        self.isCoordenador = True
+        print(f"[COORD {self.id}] Assumiu coordenação. Iniciando fila vazia.")
+        self._consumer_thread = Thread(target=self._consumir_fila, daemon=True)
+        self._consumer_thread.start()
+
+    def receive_request(self, request: Request):
+        if self.isCoordenador and self.isRunning:
+            self._fila.put(request)
+
+    def _consumir_fila(self):
         while self.isRunning and self.isCoordenador:
-            if not self.filaCoordenador.empty():
-                req = self.filaCoordenador.get()
-                print(f"[COORD {self.id}] Consumindo recurso do processo {req.process_id} às {req.timestamp.strftime('%H:%M:%S')}")
-                sleep(randint(5, 15))  # processamento 5-15s
+            if not self._fila.empty():
+                req = self._fila.get()
+                inicio = datetime.now()
+                print(f"[COORD {self.id}] Concedendo RC ao processo {req.process_id} "
+                      f"(chegou {req.timestamp.strftime('%H:%M:%S')}) às {inicio.strftime('%H:%M:%S')}")
+                sleep(randint(5, 15)) 
+                fim = datetime.now()
+                print(f"[COORD {self.id}] Liberou RC do processo {req.process_id} às {fim.strftime('%H:%M:%S')}")
+            else:
+                sleep(0.1) 
 
     def stop(self):
+        if self.isCoordenador:
+            print(f"[COORD {self.id}] Encerrando; descartando fila.")
+            with self._fila.mutex:
+                self._fila.queue.clear()
+
         self.isRunning = False
-        if self.isCoordenador and self.filaCoordenador:
-            with self.filaCoordenador.mutex:
-                self.filaCoordenador.queue.clear()
+        self.isCoordenador = False
+
+    def _get_coordenador(self):
+        with self.threads_lock:
+            for t in self.threads:
+                if t.isCoordenador:
+                    return t
+        return None
