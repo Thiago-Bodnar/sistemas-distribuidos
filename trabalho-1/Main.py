@@ -2,7 +2,7 @@ from time import sleep
 from threading import Thread
 from random import randint, choice
 from queue import PriorityQueue
-from ThreadBully import Processo
+from Thread import Processo
 
 threads = []
 
