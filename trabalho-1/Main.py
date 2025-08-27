@@ -1,41 +1,96 @@
 from time import sleep
-from threading import Thread
-from ThreadBully import Processo
-from random import randint
+from threading import Thread, Lock
+from random import randint, choice
+from Thread import Processo
+
+threads = []
+threads_lock = Lock()
+
+def get_ids():
+    with threads_lock:
+        return [t.id for t in threads]
+
+def adicionar_thread(proc):
+    with threads_lock:
+        threads.append(proc)
+
+def remover_thread(proc):
+    with threads_lock:
+        if proc in threads:
+            threads.remove(proc)
+
+def get_coordenador():
+    with threads_lock:
+        for t in threads:
+            if t.isCoordenador:
+                return t
+    return None
+
+
+def escolher_coordenador():
+    with threads_lock:
+        if not threads:
+            return
+        for t in threads:
+            t.isCoordenador = False
+        novo = choice(threads)
+        novo.set_as_coordenador()
+        print(f"[MAIN] Novo coordenador: {novo.id}")
 
 def criar_processos():
     while True:
-        id = randint(0,10000)
-        while (id in getIds()):
-            print("Id", id, "já existia")
-            id = randint(0,1000)
+        sleep(40) 
+        pid = randint(0, 10000)
+        # garante ID único
+        while pid in get_ids():
+            print(f"[MAIN] ID {pid} já existia; sorteando outro.")
+            pid = randint(0, 10000)
 
-        thread = Processo(id, threads)
-        print("Processo",id,"iniciando")
-        threads.append(thread)
-        thread.start()
-        sleep(40)
+        p = Processo(pid, threads, threads_lock)
+        adicionar_thread(p)
+        p.start()
+        print(f"[MAIN] Processo {pid} iniciado.")
+
+        if get_coordenador() is None:
+            escolher_coordenador()
 
 def inativar_coordenador():
     while True:
-        sleep(60)
-        for item in threads:
-            if item.isCoordenador:
-                print("-- Intivando Coordenador: ", item.id)
-                matar_processo(item)
-                break
-def matar_processo(item):
-    threads.remove(item)
-    item.stop()
-    item.join()
+        sleep(60)  
+        coord = get_coordenador()
+        if coord is not None:
+            print(f"[MAIN] Coordenador {coord.id} morreu.")
+            matar_processo(coord)
+            # escolhe novo coordenador aleatório (fila antiga já morreu)
+            if threads:
+                escolher_coordenador()
+        else:
+            print("[MAIN] Não havia coordenador para matar.")
 
-def getIds():
-    ids = []
-    for thread in threads:
-        ids.append(thread.id)
-    return ids
+def matar_processo(proc: Processo):
+    remover_thread(proc)
+    proc.stop()
+    proc.join(timeout=1.0)  
 
-threads = []
 
-Thread(target = criar_processos).start()
-Thread(target = inativar_coordenador).start()
+if __name__ == "__main__":
+ 
+    p0 = Processo(randint(0, 10000), threads, threads_lock)
+    adicionar_thread(p0)
+    p0.start()
+    escolher_coordenador()
+
+    Thread(target=criar_processos, daemon=True).start()
+    Thread(target=inativar_coordenador, daemon=True).start()
+
+    # mantém a main viva
+    try:
+        while True:
+            sleep(1)
+    except KeyboardInterrupt:
+        print("\n[MAIN] Encerrando...")
+        with threads_lock:
+            copia = list(threads)
+        for t in copia:
+            matar_processo(t)
+        print("[MAIN] Finalizado.")
