@@ -10,8 +10,20 @@ HOST = "0.0.0.0"
 PORT = 5000
 
 def timestamp_to_local_time(timestamp):
-    """Converte timestamp Unix para horário local no formato hh:mm:ss"""
-    return datetime.fromtimestamp(timestamp).strftime("%H:%M:%S")
+    """Converte timestamp Unix para horário local de Brasília no formato hh:mm:ss"""
+    
+    # Define o fuso horário de Brasília
+    brasilia_tz = pytz.timezone('America/Sao_Paulo')
+    
+    # Cria um objeto datetime "aware" (consciente do fuso) em UTC a partir do timestamp
+    utc_dt = datetime.fromtimestamp(timestamp, tz=pytz.utc)
+    
+    # Converte o tempo para o fuso horário de Brasília
+    brasilia_dt = utc_dt.astimezone(brasilia_tz)
+    
+    # Formata a string no novo fuso
+    return brasilia_dt.strftime("%H:%M:%S")
+
 
 # Pode vir do docker-compose (env) ou ser sorteado
 OFFSET = float(os.getenv("OFFSET", random.randint(-10, 10)))
