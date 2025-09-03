@@ -1,0 +1,27 @@
+version: "3.9"
+services:
+  master:
+    build: .
+    command: python master.py 
+    environment:
+      - SYNC_INTERVAL=10
+      - PYTHONUNBUFFERED=1 
+    depends_on:
+      - worker1
+      - worker2
+
+  worker1:
+    build: .
+    container_name: worker1
+    environment:
+      - OFFSET=-5
+      - PYTHONUNBUFFERED=1
+    command: python worker.py
+
+  worker2:
+    build: .
+    container_name: worker2
+    environment:
+      - OFFSET=7
+      - PYTHONUNBUFFERED=1
+    command: python worker.py
