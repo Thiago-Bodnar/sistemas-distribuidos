@@ -8,62 +8,44 @@ import pytz
 HOST = "0.0.0.0"
 PORT = 5000
 WORKERS = ["worker1", "worker2"]
-# Pega o intervalo do ambiente, com um padrão de 10s
 SYNC_INTERVAL = int(os.getenv("SYNC_INTERVAL", 10))
+
+# O master começa perfeitamente sincronizado (offset = 0).
+master_time_offset = 0.0
 
 def timestamp_to_local_time(timestamp):
     """Converte timestamp Unix para horário local de Brasília no formato hh:mm:ss"""
-    
-    # Define o fuso horário de Brasília
     brasilia_tz = pytz.timezone('America/Sao_Paulo')
-    
-    # Cria um objeto datetime "aware" (consciente do fuso) em UTC a partir do timestamp
     utc_dt = datetime.fromtimestamp(timestamp, tz=pytz.utc)
-    
-    # Converte o tempo para o fuso horário de Brasília
     brasilia_dt = utc_dt.astimezone(brasilia_tz)
-    
-    # Formata a string no novo fuso
     return brasilia_dt.strftime("%H:%M:%S")
 
-
 def get_worker_time_with_rtt(worker):
-    """
-    Solicita o tempo de um worker e estima a latência da rede (RTT).
-    Retorna o tempo do worker ajustado pela latência e o tempo de diferença.
-    """
+    """Solicita o tempo de um worker e estima a latência da rede (RTT)."""
     try:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            s.settimeout(2)  # Timeout de 2 segundos para evitar travamentos
-            
-            # 1. Anota o tempo antes de enviar
+            s.settimeout(2)
             time_before_request = time.time()
-            
+
             s.connect((worker, PORT))
             s.sendall(b"TIME_REQUEST")
             data = s.recv(1024).decode()
-            
-            # 2. Anota o tempo depois de receber a resposta
             time_after_response = time.time()
 
             worker_time = float(data)
-            
-            # 3. Calcula o RTT e o ajuste
+
             rtt = time_after_response - time_before_request
             latency_adjustment = rtt / 2
-            
-            # O tempo estimado do worker no momento da resposta do master é o tempo que ele enviou + metade do RTT
-            estimated_worker_time = worker_time + latency_adjustment
-            
-            print(f"[MASTER] Recebi tempo de {worker}: {timestamp_to_local_time(worker_time)} (RTT: {rtt:.4f}s)")
-            
-            return estimated_worker_time
 
+            estimated_worker_time = worker_time + latency_adjustment
+            print(f"[MASTER] Recebi tempo de {worker}: {timestamp_to_local_time(worker_time)} (RTT: {rtt:.4f}s)")
+            return estimated_worker_time
     except (socket.error, socket.timeout) as e:
         print(f"[MASTER] Erro ao conectar com {worker}: {e}")
         return None
 
 def send_adjustment(worker, adjustment):
+    """Envia o valor de ajuste para um worker."""
     try:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.settimeout(2)
@@ -73,15 +55,19 @@ def send_adjustment(worker, adjustment):
         print(f"[MASTER] Erro ao enviar ajuste para {worker}: {e}")
 
 def main():
+    global master_time_offset
+    
     print(">>> Master iniciado")
     while True:
+        # A mensagem de início de ciclo agora também usa o tempo ajustado do master.
+        current_master_time_for_log = time.time() + master_time_offset
         print("\n" + "="*40)
-        print(f"[MASTER] Iniciando novo ciclo de sincronização em {timestamp_to_local_time(time.time())}")
+        print(f"[MASTER] Iniciando novo ciclo de sincronização em {timestamp_to_local_time(current_master_time_for_log)}")
         
-        local_time = time.time()
-        print(f"[MASTER] Tempo local: {timestamp_to_local_time(local_time)}")
+        local_time = time.time() + master_time_offset
+        print(f"[MASTER] Tempo local do master: {timestamp_to_local_time(local_time)}")
 
-        worker_times = {} # Usar um dicionário para manter a associação worker -> tempo
+        worker_times = {}
         for w in WORKERS:
             wt = get_worker_time_with_rtt(w)
             if wt is not None:
@@ -92,14 +78,15 @@ def main():
             time.sleep(SYNC_INTERVAL)
             continue
             
-        # Inclui o tempo do master no cálculo
         all_times = [local_time] + list(worker_times.values())
         avg_time = statistics.mean(all_times)
         print(f"[MASTER] Média calculada (com ajuste de RTT): {timestamp_to_local_time(avg_time)}")
 
-        # Envia ajustes para o master (apenas para exibição)
         master_adjustment = avg_time - local_time
-        print(f"[MASTER] Ajuste para o próprio master: {master_adjustment:.4f}s (não aplicado, apenas referência)")
+        master_time_offset += master_adjustment
+        
+        # O novo tempo do master é, por definição, a própria média que foi calculada.
+        print(f"[MASTER] Ajuste aplicado ao próprio master: {master_adjustment:.4f}s. Novo tempo: {timestamp_to_local_time(avg_time)}")
 
         # Envia ajustes para os workers
         for w, wt in worker_times.items():
@@ -110,7 +97,6 @@ def main():
         print("[MASTER] Sincronização concluída!")
         print(f"[MASTER] Aguardando {SYNC_INTERVAL} segundos para o próximo ciclo...")
         time.sleep(SYNC_INTERVAL)
-
 
 if __name__ == "__main__":
     main()
