@@ -1,3 +1,7 @@
+# Trabalho 2 Sistemas distribuídos
+
+Grupo: Kaike Ventura, Luana Nitsche, Pedro Henrique Ortunio e Thiago Bodnar
+
 # Implementação do Algoritmo de Berkeley com Docker e Python
 
 Este projeto é uma simulação do Algoritmo de Berkeley para sincronização de relógios em sistemas distribuídos. A implementação utiliza Python para a lógica do algoritmo, Sockets TCP para a comunicação e Docker Compose para orquestrar os diferentes nós (master e workers) da rede simulada.
@@ -29,7 +33,6 @@ O ciclo de sincronização, executado periodicamente pelo master, segue os segui
 ├── Dockerfile           # Define a imagem Docker para os serviços
 ├── master.py            # Script do nó coordenador (master)
 ├── worker.py            # Script dos nós clientes (workers)
-├── requirements.txt     # Lista de dependências Python (pytz)
 └── README.md            # Esta documentação
 ```
 
