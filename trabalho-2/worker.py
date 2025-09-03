@@ -36,7 +36,7 @@ def handle_connection(conn, addr):
         
         # Para o log, calculamos o novo tempo atual para exibi-lo.
         new_time = time.time() + time_offset
-        print(f"[WORKER] Ajuste de {adjustment:.2f}s aplicado ao offset. Novo tempo: {timestamp_to_local_time(new_time)}")
+        print(f"[WORKER] Ajuste de {adjustment:.4f}s aplicado ao offset. Novo tempo: {timestamp_to_local_time(new_time)}")
         
     conn.close()
 
