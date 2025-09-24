@@ -75,13 +75,13 @@ def declare_topology(channel: pika.adapters.blocking_connection.BlockingChannel)
     # DLQ Exchange
     channel.exchange_declare(exchange=DLQ_EXCHANGE, exchange_type="direct", durable=True)
     
-    # Queues principais com DLQ configurado
+    # Queues principais com DLQ configurado (todas apontam para a mesma DLQ)
     channel.queue_declare(
         queue="expedicao_queue", 
         durable=True,
         arguments={
             'x-dead-letter-exchange': DLQ_EXCHANGE,
-            'x-dead-letter-routing-key': 'expedicao.dlq'
+            'x-dead-letter-routing-key': 'dead.letter'
         }
     )
     channel.queue_declare(
@@ -89,7 +89,7 @@ def declare_topology(channel: pika.adapters.blocking_connection.BlockingChannel)
         durable=True,
         arguments={
             'x-dead-letter-exchange': DLQ_EXCHANGE,
-            'x-dead-letter-routing-key': 'notificacao.dlq'
+            'x-dead-letter-routing-key': 'dead.letter'
         }
     )
     channel.queue_declare(
@@ -97,21 +97,17 @@ def declare_topology(channel: pika.adapters.blocking_connection.BlockingChannel)
         durable=True,
         arguments={
             'x-dead-letter-exchange': DLQ_EXCHANGE,
-            'x-dead-letter-routing-key': 'faturamento.dlq'
+            'x-dead-letter-routing-key': 'dead.letter'
         }
     )
     
-    # DLQ Queues
-    channel.queue_declare(queue="expedicao_dlq", durable=True)
-    channel.queue_declare(queue="notificacao_dlq", durable=True)
-    channel.queue_declare(queue="faturamento_dlq", durable=True)
+    # DLQ genérica
+    channel.queue_declare(queue="dead_letter_queue", durable=True)
     
     # Bindings principais
     channel.queue_bind(queue="expedicao_queue", exchange=EXCHANGE, routing_key=RK_EXPEDICAO)
     channel.queue_bind(queue="notificacao_queue", exchange=EXCHANGE, routing_key=RK_NOTIFICACAO)
     channel.queue_bind(queue="faturamento_queue", exchange=EXCHANGE, routing_key=RK_FATURAMENTO)
     
-    # DLQ Bindings
-    channel.queue_bind(queue="expedicao_dlq", exchange=DLQ_EXCHANGE, routing_key="expedicao.dlq")
-    channel.queue_bind(queue="notificacao_dlq", exchange=DLQ_EXCHANGE, routing_key="notificacao.dlq")
-    channel.queue_bind(queue="faturamento_dlq", exchange=DLQ_EXCHANGE, routing_key="faturamento.dlq")
+    # DLQ Binding
+    channel.queue_bind(queue="dead_letter_queue", exchange=DLQ_EXCHANGE, routing_key="dead.letter")
