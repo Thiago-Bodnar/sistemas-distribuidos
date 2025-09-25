@@ -11,15 +11,3 @@ Não há serviço RabbitMQ local no compose; apenas o container da aplicação P
 ## Subir
 ```bash
 docker compose up -d --build
-
-## Iniciar consumidores
-docker compose exec app python worker_expedicao.py
-docker compose exec app python worker_notificacao.py
-docker compose exec app python worker_faturamento.py
-
-#Publicar mensagens
-docker compose exec app python producer_pedidos.py
-docker compose exec app python producer_centro.py
-docker compose exec app python producer_motorista.py
-
-
