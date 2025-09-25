@@ -35,12 +35,6 @@ def on_dlq_message(ch, method, props, body):
     print(f"  - Timestamp: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())}")
     print("=" * 50)
     
-    # Aqui você pode implementar lógica para:
-    # - Logar em sistema de monitoramento
-    # - Enviar alertas
-    # - Tentar reprocessar manualmente
-    # - Arquivar para análise posterior
-    
     ch.basic_ack(delivery_tag=method.delivery_tag)
 
 def main():
