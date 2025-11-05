@@ -1,0 +1,9 @@
+[project]
+name = "corridas-distribuidas-api"
+version = "0.1.0"
+description = "API para o projeto de corridas distribuidas, referente ao trabalho final da disciplina de sistemas distribuidos"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi[standard]>=0.112.1",
+]
