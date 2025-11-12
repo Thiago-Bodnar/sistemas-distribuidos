@@ -14,7 +14,31 @@ pip install uv
 uv sync
 ```
 
-3. Rode a aplicação FastAPI:
+3. Rode o MariaDB com Docker:
+
+```bash
+docker run --name mariadb -e MYSQL_ROOT_PASSWORD=mypass -p 3306:3306 -d docker.io/library/mariadb:10.6
+```
+
+4. Acesse o MariaDB e crie uma base `fastapi`
+
+```bash
+docker exec -it mariadb mariadb -u root -pmypass
+```
+
+No console, rode o seguinte:
+
+```sql
+CREATE DATABASE fastapi;
+```
+
+5. Rode as migrations:
+
+```bash
+ uv run alembic revision --autogenerate -m "Cria as tabelas iniciais"
+ ``` 
+
+6. Rode a aplicação FastAPI:
 
 ```bash
 uv run fastapi dev
