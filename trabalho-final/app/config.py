@@ -19,3 +19,8 @@ RABBIT_URL: str = os.getenv("RABBIT_URL", "amqp://guest:guest@localhost:5672/")
 MAPS_API_KEY: Optional[str] = os.getenv("MAPS_API_KEY")
 MAPS_API_URL: str = os.getenv("MAPS_API_URL", "https://api.maps.example.com")
 
+# JWT configuration
+JWT_SECRET_KEY: str = os.getenv("JWT_SECRET_KEY", "key-super-secreta")
+JWT_ALGORITHM: str = os.getenv("JWT_ALGORITHM", "HS256")
+JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("JWT_ACCESS_TOKEN_EXPIRE_MINUTES", "1440"))  # 24 horas
+

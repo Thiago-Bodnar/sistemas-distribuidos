@@ -1,7 +1,7 @@
 """Endpoints para /servers, /status, etc."""
 from fastapi import APIRouter
 
-router = APIRouter(prefix="/servers", tags=["servers"])
+router = APIRouter(prefix="/servidores", tags=["servidores"])
 
 
 @router.get("/")

@@ -1,7 +1,8 @@
 """Cria a FastAPI, inclui routers, middlewares."""
 from fastapi import FastAPI
 
-from app.api import drivers, rides, servers
+from app.api import (auth, corridas, motoristas, passageiros, servidores,
+                     veiculos)
 from app.infra.logging_config import setup_logging
 
 # Configurar logging
@@ -15,9 +16,12 @@ app = FastAPI(
 )
 
 # Incluir routers
-app.include_router(rides.router)
-app.include_router(drivers.router)
-app.include_router(servers.router)
+app.include_router(auth.router)
+app.include_router(passageiros.router)
+app.include_router(corridas.router)
+app.include_router(motoristas.router)
+app.include_router(servidores.router)
+app.include_router(veiculos.router)
 
 
 @app.get("/")

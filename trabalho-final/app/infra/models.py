@@ -1,5 +1,6 @@
 """Tabelas (ORM): drivers, passengers, rides, nodes, heartbeats/logs."""
 from datetime import datetime
+from typing import Optional
 
 from sqlalchemy import Boolean, DateTime, Float, ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
@@ -17,9 +18,9 @@ class Motorista(Base):
     email: Mapped[str] = mapped_column(String(100), unique=True, index=True)
     telefone: Mapped[str] = mapped_column(String(100), unique=True)
     senha_hash: Mapped[str] = mapped_column(String(255))
-    localizacao_atual: Mapped[str] = mapped_column(String(255))
-    id_veiculo: Mapped[int] = mapped_column(Integer, ForeignKey("veiculos.id"))
-    id_servidor: Mapped[int] = mapped_column(Integer, ForeignKey("servidores.id"))
+    localizacao_atual: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    id_veiculo: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey("veiculos.id"), nullable=True)
+    id_servidor: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey("servidores.id"), nullable=True)
 
 
 class Passageiro(Base):
@@ -45,16 +46,16 @@ class Corrida(Base):
     """Modelo ORM para corridas."""
     __tablename__ = "corridas"
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
-    id_motorista: Mapped[int] = mapped_column(Integer, ForeignKey("motoristas.id"))
+    id_motorista: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey("motoristas.id"), nullable=True)
     id_passageiro: Mapped[int] = mapped_column(Integer, ForeignKey("passageiros.id"))
-    id_veiculo: Mapped[int] = mapped_column(Integer, ForeignKey("veiculos.id"))
-    id_servidor: Mapped[int] = mapped_column(Integer, ForeignKey("servidores.id"))
+    id_veiculo: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey("veiculos.id"), nullable=True)
+    id_servidor: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey("servidores.id"), nullable=True)
     origem: Mapped[str] = mapped_column(String(255))
     destino: Mapped[str] = mapped_column(String(255))
     status: Mapped[str] = mapped_column(String(100))
-    valor: Mapped[float] = mapped_column(Float)
-    tempo: Mapped[int] = mapped_column(Integer)
-    distancia: Mapped[float] = mapped_column(Float)
+    valor: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    tempo: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    distancia: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
 
 
 class Servidor(Base):
