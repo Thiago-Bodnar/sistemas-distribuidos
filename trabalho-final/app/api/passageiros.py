@@ -30,6 +30,7 @@ async def create_passenger(
     """Cria um novo passageiro."""
     try:
         passenger = passenger_service.create_passenger(db, passenger_data)
+        return passenger
     except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
