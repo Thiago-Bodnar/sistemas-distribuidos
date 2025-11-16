@@ -1,23 +1,26 @@
-from fastapi import Depends, FastAPI
+"""Cria a FastAPI, inclui routers, middlewares."""
+from fastapi import FastAPI
 
-from .dependencies import get_query_token, get_token_header
-from .internal import admin
-from .routers import items, users
+from app.api import drivers, rides, servers
+from app.infra.logging_config import setup_logging
 
-app = FastAPI(dependencies=[Depends(get_query_token)])
+# Configurar logging
+setup_logging()
 
-
-app.include_router(users.router)
-app.include_router(items.router)
-app.include_router(
-    admin.router,
-    prefix="/admin",
-    tags=["admin"],
-    dependencies=[Depends(get_token_header)],
-    responses={418: {"description": "I'm a teapot"}},
+# Criar aplicação FastAPI
+app = FastAPI(
+    title="Corridas Distribuídas API",
+    description="API para sistema de corridas distribuído",
+    version="0.1.0"
 )
+
+# Incluir routers
+app.include_router(rides.router)
+app.include_router(drivers.router)
+app.include_router(servers.router)
 
 
 @app.get("/")
 async def root():
-    return {"message": "Hello Bigger Applications!"}
+    """Endpoint raiz."""
+    return {"message": "Corridas Distribuídas API"}

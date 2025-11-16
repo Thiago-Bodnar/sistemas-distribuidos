@@ -1,19 +1,21 @@
+"""Conexão com MariaDB (SQLAlchemy)."""
 from sqlalchemy import create_engine
 from sqlalchemy.orm import DeclarativeBase, sessionmaker
 
-# TODO mover para variável de ambiente
-DATABASE_URL = "mariadb+pymysql://root:mypass@localhost:3306/fastapi"
+from app.config import DB_URL
 
-engine = create_engine(DATABASE_URL)
+engine = create_engine(DB_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
 class Base(DeclarativeBase):
+    """Base class para modelos SQLAlchemy."""
     pass
 
 
 # Dependency to get DB session
 def get_db():
+    """Dependency para obter sessão do banco de dados."""
     db = SessionLocal()
     try:
         yield db

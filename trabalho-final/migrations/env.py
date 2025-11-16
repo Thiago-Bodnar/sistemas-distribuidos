@@ -21,10 +21,15 @@ from pathlib import Path
 # Add the project root to the path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from app import models  # Import all models to register them with Base
-from app.database import Base
+from app.infra import models  # Import all models to register them with Base
+from app.infra.db import Base
+from app.config import DB_URL
 
 target_metadata = Base.metadata
+
+# Override the database URL from alembic.ini with the one from app.config
+# This ensures consistency between Alembic and the application
+config.set_main_option("sqlalchemy.url", DB_URL)
 
 
 def run_migrations_offline() -> None:

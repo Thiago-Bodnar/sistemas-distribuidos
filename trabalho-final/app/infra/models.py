@@ -1,13 +1,15 @@
+"""Tabelas (ORM): drivers, passengers, rides, nodes, heartbeats/logs."""
 from datetime import datetime
 
 from sqlalchemy import Boolean, DateTime, Float, ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
 
-from .database import Base
+from app.infra.db import Base
 
 
 # Adicionar novas models aqui, e rodar o alembic para gerar a migration
 class Motorista(Base):
+    """Modelo ORM para motoristas."""
     __tablename__ = "motoristas"
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
@@ -19,7 +21,9 @@ class Motorista(Base):
     id_veiculo: Mapped[int] = mapped_column(Integer, ForeignKey("veiculos.id"))
     id_servidor: Mapped[int] = mapped_column(Integer, ForeignKey("servidores.id"))
 
+
 class Passageiro(Base):
+    """Modelo ORM para passageiros."""
     __tablename__ = "passageiros"
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
     nome: Mapped[str] = mapped_column(String(100), unique=True)
@@ -27,14 +31,18 @@ class Passageiro(Base):
     telefone: Mapped[str] = mapped_column(String(100), unique=True)
     senha_hash: Mapped[str] = mapped_column(String(255))
 
+
 class Veiculo(Base):
+    """Modelo ORM para veículos."""
     __tablename__ = "veiculos"
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
     placa: Mapped[str] = mapped_column(String(100), unique=True)
     modelo: Mapped[str] = mapped_column(String(100))
     cor: Mapped[str] = mapped_column(String(100))
 
+
 class Corrida(Base):
+    """Modelo ORM para corridas."""
     __tablename__ = "corridas"
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
     id_motorista: Mapped[int] = mapped_column(Integer, ForeignKey("motoristas.id"))
@@ -48,7 +56,9 @@ class Corrida(Base):
     tempo: Mapped[int] = mapped_column(Integer)
     distancia: Mapped[float] = mapped_column(Float)
 
+
 class Servidor(Base):
+    """Modelo ORM para servidores/nós."""
     __tablename__ = "servidores"
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
     nome: Mapped[str] = mapped_column(String(100), unique=True)
@@ -56,3 +66,4 @@ class Servidor(Base):
     uptime: Mapped[int] = mapped_column(Integer)
     is_coordenador: Mapped[bool] = mapped_column(Boolean)
     ultimo_heartbeat: Mapped[datetime] = mapped_column(DateTime)
+
