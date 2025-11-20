@@ -25,12 +25,7 @@ docker run --name mariadb -e MYSQL_ROOT_PASSWORD=mypass -p 3306:3306 -d docker.i
 4. Acesse o MariaDB e crie uma base `fastapi` e o usuário:
 
 ```bash
-docker run \                                                        
---name mariadb \
--e MYSQL_ROOT_PASSWORD=mypass \
--p 3306:3306 \
--v mariadb_data:/var/lib/mysql \
--d docker.io/library/mariadb:10.6
+docker run --name mariadb -e MYSQL_ROOT_PASSWORD=mypass -p 3307:3306 -v mariadb_data:/var/lib/mysql -d docker.io/library/mariadb:10.6
 ```
 
 No console, rode o seguinte:

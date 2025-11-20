@@ -9,7 +9,7 @@ REGION: str = os.getenv("REGION", "us-east-1")
 # Database configuration
 DB_URL: str = os.getenv(
     "DB_URL",
-    "mariadb+pymysql://fastapi:super-senha@127.0.0.1:3306/fastapi"
+    "mariadb+pymysql://fastapi:super-senha@127.0.0.1:3307/fastapi"
 )
 
 # RabbitMQ configuration
