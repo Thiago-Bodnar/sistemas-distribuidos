@@ -7,6 +7,9 @@ from app.api import (auth, corridas, motoristas, passageiros, servidores,
 from app.infra.logging_config import setup_logging
 from app.services import heartbeat_service
 
+from app.api import corridas, motoristas, maps
+
+# Configurar logging
 setup_logging()
 
 app = FastAPI(
@@ -21,7 +24,7 @@ app.include_router(corridas.router)
 app.include_router(motoristas.router)
 app.include_router(servidores.router)
 app.include_router(veiculos.router)
-
+app.include_router(maps.router, prefix="/maps", tags=["Maps"])
 
 @app.on_event("startup")
 async def start_heartbeat_task():

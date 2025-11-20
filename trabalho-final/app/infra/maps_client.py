@@ -1,24 +1,23 @@
-"""Cliente HTTP (requests) para API de mapas."""
-# TODO: Implementar cliente HTTP para API de mapas
+import openrouteservice
+import asyncio
+from concurrent.futures import ThreadPoolExecutor
 
-import requests
-from app.config import MAPS_API_KEY, MAPS_API_URL
+class MapsClient:
+    def __init__(self, api_key: str):
+        self.client = openrouteservice.Client(key=api_key)
+        self.executor = ThreadPoolExecutor()
 
-
-def get_route(origin: str, destination: str):
-    """Obtém rota da API de mapas."""
-    # TODO: Implementar
-    pass
-
-
-def get_distance(origin: str, destination: str):
-    """Obtém distância da API de mapas."""
-    # TODO: Implementar
-    pass
-
-
-def get_estimated_time(origin: str, destination: str):
-    """Obtém tempo estimado da API de mapas."""
-    # TODO: Implementar
-    pass
-
+    async def route(self, start: list, end: list):
+        """
+        start/end: [longitude, latitude]
+        ORS não é nativamente async, então rodamos em thread separada.
+        """
+        loop = asyncio.get_event_loop()
+        return await loop.run_in_executor(
+            self.executor,
+            lambda: self.client.directions(
+                coordinates=[start, end],
+                profile="driving-car",
+                format="geojson"
+            )
+        )
