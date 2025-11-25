@@ -19,13 +19,14 @@ uv sync
 3. Rode o MariaDB com Docker:
 
 ```bash
-docker run --name mariadb -e MYSQL_ROOT_PASSWORD=mypass -p 3306:3306 -d docker.io/library/mariadb:10.6
+docker run --name mariadb -e MYSQL_ROOT_PASSWORD=mypass -p 3307:3306 -v mariadb_data:/var/lib/mysql -d docker.io/library/mariadb:10.6
 ```
 
 4. Acesse o MariaDB e crie uma base `fastapi` e o usuário:
 
 ```bash
-docker run --name mariadb -e MYSQL_ROOT_PASSWORD=mypass -p 3307:3306 -v mariadb_data:/var/lib/mysql -d docker.io/library/mariadb:10.6
+docker exec -it mariadb mariadb -u root -pmypass
+
 ```
 
 No console, rode o seguinte:
@@ -37,11 +38,15 @@ GRANT ALL PRIVILEGES ON fastapi.* TO 'fastapi'@'%';
 FLUSH PRIVILEGES;
 ```
 
+Logo após saia do container `ctrl + d`
+
 5. Rode as migrations:
 
 ```bash
  uv run alembic revision --autogenerate -m "Cria as tabelas iniciais"
- ``` 
+
+ uv run alembic upgrade head
+ ```
 
 6. Rode a aplicação FastAPI:
 
