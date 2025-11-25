@@ -1,9 +1,6 @@
-"""Config do logging para mostrar mensagens na demo."""
+"""Config do logging """
 import logging
 import sys
-
-# TODO: Configurar logging conforme necessário
-
 
 def setup_logging(level: int = logging.INFO):
     """Configura o logging da aplicação."""
