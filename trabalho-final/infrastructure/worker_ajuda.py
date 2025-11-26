@@ -1,9 +1,11 @@
 import json
 import os
 import sys
+
 import pika
-from app.services import heartbeat_service, election_service
-from config import CLOUDAMQP_URL, NODE_ID
+
+from app.config import CLOUDAMQP_URL, NODE_ID
+from app.services import election_service, heartbeat_service
 
 EXCHANGE = "corrida.direct"
 AJUDA_QUEUE = "ajuda_queue"

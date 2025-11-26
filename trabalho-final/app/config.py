@@ -14,6 +14,7 @@ DB_URL: str = os.getenv(
 
 # RabbitMQ configuration
 RABBIT_URL: str = os.getenv("RABBIT_URL", "amqp://guest:guest@localhost:5672/")
+CLOUDAMQP_URL: str = os.getenv("CLOUDAMQP_URL", os.getenv("AMQP_URL", RABBIT_URL))
 
 # Maps API configuration (placeholder)
 MAPS_API_KEY: Optional[str] = os.getenv("MAPS_API_KEY")

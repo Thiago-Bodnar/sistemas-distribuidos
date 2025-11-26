@@ -4,11 +4,10 @@ import sys
 import pika
 from sqlalchemy.orm import Session
 
-from config import CLOUDAMQP_URL
+from app.config import CLOUDAMQP_URL
+from app.domain.enums import DriverStatus, RideStatus
 from app.infra.db import SessionLocal
 from app.infra.models import Corrida, Motorista
-from app.domain.enums import RideStatus, DriverStatus
-
 
 EXCHANGE = "corrida.direct"
 STATUS_QUEUE = "status_queue"
@@ -22,16 +21,12 @@ def _declare_topology(channel):
 
 
 def _update_motorista(db: Session, motorista_id: int, novo_status: str):
-    motorista = db.get(Motorista, motorista_id)
+    """Atualiza status do motorista baseado no status da corrida."""
+    motorista = db.query(Motorista).filter(Motorista.id == motorista_id).first()
     if not motorista:
         return
-
-    if novo_status in (RideStatus.ACEITA.value, RideStatus.EM_ANDAMENTO.value):
-        motorista.status = DriverStatus.EM_CORRIDA.value
-    elif novo_status in (RideStatus.CONCLUIDA.value, RideStatus.CANCELADA.value):
-        motorista.status = DriverStatus.DISPONIVEL.value
-
-    db.commit()
+    
+    print(f"[worker_status] Motorista {motorista_id} deveria ter status atualizado para corrida {novo_status}")
 
 
 def _handle_status_update(db: Session, data: dict):
@@ -42,7 +37,7 @@ def _handle_status_update(db: Session, data: dict):
         print("[worker_status] Mensagem inválida:", data)
         return
 
-    corrida: Corrida = db.get(Corrida, corrida_id)
+    corrida = db.query(Corrida).filter(Corrida.id == corrida_id).first()
     if not corrida:
         print(f"[worker_status] Corrida {corrida_id} não encontrada.")
         return
@@ -50,7 +45,7 @@ def _handle_status_update(db: Session, data: dict):
     corrida.status = novo_status
 
     if "motorista_id" in data and data["motorista_id"] is not None:
-        corrida.motorista_id = data["motorista_id"]
+        corrida.id_motorista = data["motorista_id"]
         _update_motorista(db, data["motorista_id"], novo_status)
 
     if "valor" in data:

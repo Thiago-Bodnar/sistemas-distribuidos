@@ -1,13 +1,12 @@
 """Cria a FastAPI, inclui routers, middlewares."""
 import asyncio
+
 from fastapi import FastAPI
 
-from app.api import (auth, corridas, motoristas, passageiros, servidores,
+from app.api import (auth, corridas, maps, motoristas, passageiros, servidores,
                      veiculos)
 from app.infra.logging_config import setup_logging
 from app.services import heartbeat_service
-
-from app.api import corridas, motoristas, maps
 
 # Configurar logging
 setup_logging()
