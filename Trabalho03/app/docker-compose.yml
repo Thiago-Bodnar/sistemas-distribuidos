@@ -1,0 +1,70 @@
+version: '3.8'
+
+services:
+  # Workers
+  worker-expedicao:
+    build: .
+    command: python worker_expedicao.py
+    environment:
+      - CLOUDAMQP_URL=${CLOUDAMQP_URL}
+      - PYTHONUNBUFFERED=1
+      - MAX_RETRIES=3
+      - RETRY_DELAY_BASE=1000
+    restart: unless-stopped
+
+  worker-notificacao:
+    build: .
+    command: python worker_notificacao.py
+    environment:
+      - CLOUDAMQP_URL=${CLOUDAMQP_URL}
+      - PYTHONUNBUFFERED=1
+      - MAX_RETRIES=3
+      - RETRY_DELAY_BASE=1000
+    restart: unless-stopped
+
+
+  worker-faturamento:
+    build: .
+    command: python worker_faturamento.py
+    environment:
+      - CLOUDAMQP_URL=${CLOUDAMQP_URL}
+      - PYTHONUNBUFFERED=1
+      - MAX_RETRIES=3
+      - RETRY_DELAY_BASE=1000
+    restart: unless-stopped
+
+
+  worker-dlq-monitor:
+    build: .
+    command: python worker_dlq_monitor.py
+    environment:
+      - CLOUDAMQP_URL=${CLOUDAMQP_URL}
+      - PYTHONUNBUFFERED=1
+    restart: unless-stopped
+
+
+  # Producers (executam uma vez e terminam)
+  producer-centro:
+    build: .
+    command: python producer_centro.py
+    environment:
+      - CLOUDAMQP_URL=${CLOUDAMQP_URL}
+      - PYTHONUNBUFFERED=1
+    restart: "no"
+
+
+  producer-motorista:
+    build: .
+    command: python producer_motorista.py
+    environment:
+      - CLOUDAMQP_URL=${CLOUDAMQP_URL}
+      - PYTHONUNBUFFERED=1
+    restart: "no"
+
+  producer-pedidos:
+    build: .
+    command: python producer_pedidos.py
+    environment:
+      - CLOUDAMQP_URL=${CLOUDAMQP_URL}
+      - PYTHONUNBUFFERED=1
+    restart: "no"
