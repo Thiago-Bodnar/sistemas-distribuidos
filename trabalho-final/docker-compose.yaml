@@ -1,0 +1,147 @@
+version: "3.8"
+
+services:
+  mariadb:
+    image: mariadb:10.6
+    container_name: mariadb
+    environment:
+      MYSQL_ROOT_PASSWORD: mypass
+      MYSQL_DATABASE: fastapi
+    ports:
+      - "3306:3306"
+    volumes:
+      - mariadb_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mariadb-admin", "ping", "-u", "root", "-pmypass"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Nó 1 da API
+  api-node-1:
+    build: .
+    command: sh -c "uv run alembic upgrade head && uv run uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
+    volumes:
+      - .:/app
+    environment:
+      DB_URL: mariadb+pymysql://root:mypass@mariadb:3306/fastapi
+      NODE_ID: node-1
+      REGION: local
+      JWT_SECRET_KEY: key-super-secreta
+      CLOUDAMQP_URL: ${CLOUDAMQP_URL}
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+
+  # Worker de ajuda para nó 1
+  worker-ajuda-node-1:
+    build: .
+    command: uv run python infrastructure/worker_ajuda.py
+    environment:
+      PYTHONPATH: /app
+      DB_URL: mariadb+pymysql://fastapi:super-senha@mariadb:3306/fastapi
+      NODE_ID: node-1
+      REGION: local
+      CLOUDAMQP_URL: ${CLOUDAMQP_URL}
+      JWT_SECRET_KEY: key-super-secreta
+    volumes:
+      - .:/app
+    depends_on:
+      mariadb:
+        condition: service_healthy
+      api-node-1:
+        condition: service_started
+
+  # Nó 2 da API
+  api-node-2:
+    build: .
+    command: sh -c "uv run alembic upgrade head && uv run uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
+    volumes:
+      - .:/app
+    environment:
+      DB_URL: mariadb+pymysql://root:mypass@mariadb:3306/fastapi
+      NODE_ID: node-2
+      REGION: local
+      JWT_SECRET_KEY: key-super-secreta
+      CLOUDAMQP_URL: ${CLOUDAMQP_URL}
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    ports:
+      - "8001:8000"
+
+  # Worker de ajuda para nó 2
+  worker-ajuda-node-2:
+    build: .
+    command: uv run python infrastructure/worker_ajuda.py
+    environment:
+      PYTHONPATH: /app
+      DB_URL: mariadb+pymysql://root:mypass@mariadb:3306/fastapi
+      NODE_ID: node-2
+      REGION: local
+      CLOUDAMQP_URL: ${CLOUDAMQP_URL}
+      JWT_SECRET_KEY: key-super-secreta
+    volumes:
+      - .:/app
+    depends_on:
+      mariadb:
+        condition: service_healthy
+      api-node-2:
+        condition: service_started
+
+  # Nó 3 da API
+  api-node-3:
+    build: .
+    command: sh -c "uv run alembic upgrade head && uv run uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
+    volumes:
+      - .:/app
+    environment:
+      DB_URL: mariadb+pymysql://root:mypass@mariadb:3306/fastapi
+      NODE_ID: node-3
+      REGION: local
+      JWT_SECRET_KEY: key-super-secreta
+      CLOUDAMQP_URL: ${CLOUDAMQP_URL}
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    ports:
+      - "8002:8000"
+
+  # Worker de ajuda para nó 3
+  worker-ajuda-node-3:
+    build: .
+    command: uv run python infrastructure/worker_ajuda.py
+    environment:
+      PYTHONPATH: /app
+      DB_URL: mariadb+pymysql://root:mypass@mariadb:3306/fastapi
+      NODE_ID: node-3
+      REGION: local
+      CLOUDAMQP_URL: ${CLOUDAMQP_URL}
+      JWT_SECRET_KEY: key-super-secreta
+    volumes:
+      - .:/app
+    depends_on:
+      mariadb:
+        condition: service_healthy
+      api-node-3:
+        condition: service_started
+
+  # Worker de status (compartilhado entre todos os nós)
+  worker_status:
+    build: .
+    command: uv run python infrastructure/worker_status.py
+    environment:
+      PYTHONPATH: /app
+      DB_URL: mariadb+pymysql://fastapi:super-senha@mariadb:3306/fastapi
+      CLOUDAMQP_URL: ${CLOUDAMQP_URL}
+      JWT_SECRET_KEY: key-super-secreta
+    volumes:
+      - .:/app
+    depends_on:
+      mariadb:
+        condition: service_healthy
+
+volumes:
+  mariadb_data:
